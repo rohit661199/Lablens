@@ -15,7 +15,7 @@ const WORKFLOW = [
 ];
 
 export default function App() {
-  const [theme, setTheme]     = useState('light');
+  const [theme, setTheme]     = useState('dark');
   const [results, setResults] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError]     = useState(null);
