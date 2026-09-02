@@ -22,12 +22,11 @@ def reference_range_lookup(test_name: str) -> str:
     if test_name in HARDCODED_REFERENCE_RANGES:
         return json.dumps(HARDCODED_REFERENCE_RANGES[test_name])
     
-    api_key = os.getenv("OPENROUTER_API_KEY")
+    api_key = os.getenv("OPENAI_API_KEY")
     if not api_key:
         return json.dumps({})
 
     client = OpenAI(
-        base_url="https://openrouter.ai/api/v1",
         api_key=api_key,
     )
 
@@ -42,7 +41,7 @@ Respond ONLY with a JSON object in this exact schema:
 If you do not know or it varies too wildly without context, return an empty object {{}}."""
     try:
         response = client.chat.completions.create(
-            model="nvidia/nemotron-3.5-lightning:free",
+            model="gpt-4o-mini",
             messages=[{"role": "user", "content": prompt}],
             response_format={"type": "json_object"}
         )
@@ -57,7 +56,7 @@ def explain_results_batch(results_json: str) -> str:
     Accepts JSON string array of lab results. 
     Returns JSON string with explanations and next steps."""
     
-    api_key = os.getenv("OPENROUTER_API_KEY")
+    api_key = os.getenv("OPENAI_API_KEY")
     if not api_key:
         return json.dumps({"error": "No API Key"})
 
@@ -67,7 +66,6 @@ def explain_results_batch(results_json: str) -> str:
         return json.dumps({"error": "Invalid input format"})
 
     client = OpenAI(
-        base_url="https://openrouter.ai/api/v1",
         api_key=api_key,
     )
 
@@ -85,7 +83,7 @@ Respond ONLY with a valid JSON object containing a single key "explanations" whi
     
     try:
         response = client.chat.completions.create(
-            model="nvidia/nemotron-3.5-lightning:free",
+            model="gpt-4o-mini",
             messages=[{"role": "user", "content": prompt}],
             response_format={"type": "json_object"}
         )

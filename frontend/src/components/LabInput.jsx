@@ -1,123 +1,97 @@
 import React, { useState } from 'react';
 import Papa from 'papaparse';
-import { Upload, FileText, Send } from 'lucide-react';
+import { Upload, Keyboard, FlaskConical } from 'lucide-react';
 import './LabInput.css';
 
-const LabInput = ({ onAnalyze, isLoading }) => {
-  const [activeTab, setActiveTab] = useState('csv');
-  
-  // Form State
+export default function LabInput({ onAnalyze, isLoading, defaultTab }) {
+  const [tab, setTab] = useState(defaultTab === 'manual' ? 'manual' : 'csv');
   const [testName, setTestName] = useState('');
-  const [result, setResult] = useState('');
-  const [unit, setUnit] = useState('');
+  const [result, setResult]     = useState('');
+  const [unit, setUnit]         = useState('');
   const [refRange, setRefRange] = useState('');
+  const [dragging, setDragging] = useState(false);
 
-  const handleFileUpload = (e) => {
-    const file = e.target.files[0];
-    if (file) {
-      Papa.parse(file, {
-        header: true,
-        skipEmptyLines: true,
-        complete: function (results) {
-          // Sanitize data: convert empty strings to null/undefined, and parse numbers if needed
-          const sanitizedData = results.data.map(row => {
-            const cleanRow = { ...row };
-            if (cleanRow.Min_Reference === "") cleanRow.Min_Reference = null;
-            if (cleanRow.Max_Reference === "") cleanRow.Max_Reference = null;
-            // Also parse if they are strings
-            if (cleanRow.Min_Reference !== null && cleanRow.Min_Reference !== undefined) cleanRow.Min_Reference = parseFloat(cleanRow.Min_Reference) || null;
-            if (cleanRow.Max_Reference !== null && cleanRow.Max_Reference !== undefined) cleanRow.Max_Reference = parseFloat(cleanRow.Max_Reference) || null;
-            return cleanRow;
-          });
-          onAnalyze(sanitizedData);
-        }
-      });
-    }
+  const parseFile = (file) => {
+    Papa.parse(file, {
+      header: true, skipEmptyLines: true,
+      complete: ({ data }) => {
+        const cleaned = data.map(row => {
+          const r = { ...row };
+          if (r.Min_Reference === '') r.Min_Reference = null;
+          if (r.Max_Reference === '') r.Max_Reference = null;
+          if (r.Min_Reference != null) r.Min_Reference = parseFloat(r.Min_Reference) || null;
+          if (r.Max_Reference != null) r.Max_Reference = parseFloat(r.Max_Reference) || null;
+          return r;
+        });
+        onAnalyze(cleaned);
+      }
+    });
   };
 
   const handleFormSubmit = (e) => {
     e.preventDefault();
     if (!testName || !result) return;
-    
-    // Attempt to parse refRange into min/max if possible
-    let minRef = null;
-    let maxRef = null;
-    
-    if (refRange && refRange.includes('-')) {
-        const parts = refRange.split('-');
-        if (parts.length === 2) {
-            minRef = parseFloat(parts[0]);
-            maxRef = parseFloat(parts[1]);
-        }
+    let minRef = null, maxRef = null;
+    if (refRange?.includes('-')) {
+      const [a, b] = refRange.split('-');
+      minRef = parseFloat(a);
+      maxRef = parseFloat(b);
     }
-
-    const payload = [{
-      Test_Name: testName,
-      Result: result,
-      Unit: unit,
-      Reference_Range: refRange,
-      Min_Reference: isNaN(minRef) ? null : minRef,
-      Max_Reference: isNaN(maxRef) ? null : maxRef
-    }];
-
-    onAnalyze(payload);
+    onAnalyze([{ Test_Name: testName, Result: result, Unit: unit, Reference_Range: refRange,
+      Min_Reference: isNaN(minRef) ? null : minRef, Max_Reference: isNaN(maxRef) ? null : maxRef }]);
   };
 
   return (
-    <div className="lab-input-container">
-      <div className="tabs">
-        <button 
-          className={`tab-button ${activeTab === 'csv' ? 'active' : ''}`}
-          onClick={() => setActiveTab('csv')}
-        >
-          <Upload size={18} /> CSV Upload
+    <div className="lab-input-wrap">
+      <div className="li-tabs">
+        <button className={`li-tab ${tab === 'csv' ? 'active' : ''}`} onClick={() => setTab('csv')}>
+          <Upload size={14} /> CSV Upload
         </button>
-        <button 
-          className={`tab-button ${activeTab === 'form' ? 'active' : ''}`}
-          onClick={() => setActiveTab('form')}
-        >
-          <FileText size={18} /> Manual Entry
+        <button className={`li-tab ${tab === 'manual' ? 'active' : ''}`} onClick={() => setTab('manual')}>
+          <Keyboard size={14} /> Manual Entry
         </button>
       </div>
 
-      <div className="tab-content">
-        {activeTab === 'csv' ? (
-          <div className="upload-section">
-            <label className="upload-label">
-              <Upload size={32} className="upload-icon" />
-              <span>Click to upload a CSV file</span>
-              <input type="file" accept=".csv" onChange={handleFileUpload} disabled={isLoading} hidden />
-            </label>
-            <p className="upload-hint">Expected columns: Test_Name, Result, Unit, Reference_Range (or Min_Reference, Max_Reference)</p>
+      {tab === 'csv' ? (
+        <label
+          className={`li-dropzone ${dragging ? 'dragging' : ''}`}
+          onDragOver={e => { e.preventDefault(); setDragging(true); }}
+          onDragLeave={() => setDragging(false)}
+          onDrop={e => { e.preventDefault(); setDragging(false); const f = e.dataTransfer.files?.[0]; if(f) parseFile(f); }}
+        >
+          <div className="dz-icon-wrap">
+            <Upload size={28} className="dz-icon" />
           </div>
-        ) : (
-          <form className="manual-form" onSubmit={handleFormSubmit}>
-            <div className="form-group">
-              <label>Test Name *</label>
-              <input type="text" value={testName} onChange={e => setTestName(e.target.value)} required disabled={isLoading} />
+          <p className="dz-title">Drop CSV Lab Report Here</p>
+          <p className="dz-sub">or click to browse · CSV format</p>
+          <p className="dz-hint">Headers: Test_Name, Result, Unit, Reference_Range</p>
+          <input type="file" accept=".csv" onChange={e => { const f = e.target.files?.[0]; if(f) parseFile(f); }} disabled={isLoading} hidden />
+        </label>
+      ) : (
+        <form className="li-form" onSubmit={handleFormSubmit}>
+          <div className="li-field">
+            <label>Test Name <span className="req">*</span></label>
+            <input value={testName} onChange={e => setTestName(e.target.value)} placeholder="e.g. Hemoglobin" required disabled={isLoading} />
+          </div>
+          <div className="li-row">
+            <div className="li-field">
+              <label>Result <span className="req">*</span></label>
+              <input value={result} onChange={e => setResult(e.target.value)} placeholder="6.5" required disabled={isLoading} />
             </div>
-            <div className="form-group row">
-              <div className="form-col">
-                <label>Result Value *</label>
-                <input type="text" value={result} onChange={e => setResult(e.target.value)} required disabled={isLoading} />
-              </div>
-              <div className="form-col">
-                <label>Unit</label>
-                <input type="text" value={unit} onChange={e => setUnit(e.target.value)} disabled={isLoading} />
-              </div>
+            <div className="li-field">
+              <label>Unit</label>
+              <input value={unit} onChange={e => setUnit(e.target.value)} placeholder="g/dL" disabled={isLoading} />
             </div>
-            <div className="form-group">
-              <label>Reference Range (e.g. 10-20)</label>
-              <input type="text" value={refRange} onChange={e => setRefRange(e.target.value)} disabled={isLoading} />
-            </div>
-            <button type="submit" className="submit-btn" disabled={isLoading || !testName || !result}>
-               <Send size={18} /> Analyze
-            </button>
-          </form>
-        )}
-      </div>
+          </div>
+          <div className="li-field">
+            <label>Reference Range</label>
+            <input value={refRange} onChange={e => setRefRange(e.target.value)} placeholder="12–16" disabled={isLoading} />
+          </div>
+          <button type="submit" className="li-submit" disabled={isLoading || !testName || !result}>
+            <FlaskConical size={16} /> {isLoading ? 'Analyzing…' : 'Run Analysis'}
+          </button>
+        </form>
+      )}
     </div>
   );
-};
-
-export default LabInput;
+}

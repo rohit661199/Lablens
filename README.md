@@ -6,7 +6,7 @@ This is a Full-Stack application for analyzing clinical lab test results. It tak
 
 - **Backend**: Python FastAPI. Exposes the `POST /analyze_labs` endpoint.
 - **Agent/AI**: The backend acts as an MCP (Model Context Protocol) client. The agent communicates with an MCP Server (`mcp_server.py`) which exposes tools for reference range lookups and LLM clinical explanations.
-- **LLM Provider**: OpenRouter using `google/gemini-2.5-flash` for explanations.
+- **LLM Provider**: OpenAI using `gpt-4o-mini` for explanations.
 - **Frontend**: React (Vite). Form and CSV upload capabilities.
 - **Data**: Kaggle Anonymized Laboratory Test Results Dataset.
 
@@ -15,7 +15,7 @@ This is a Full-Stack application for analyzing clinical lab test results. It tak
 ### Prerequisites
 - Node.js & npm (for frontend)
 - Python 3.9+ (for backend)
-- OpenRouter API Key
+- OpenAI API Key
 
 ### Backend Setup
 1. Navigate to the `backend/` directory:
@@ -33,7 +33,7 @@ This is a Full-Stack application for analyzing clinical lab test results. It tak
    ```
 4. Create a `.env` file in the `backend/` folder and add your API key:
    ```env
-   OPENROUTER_API_KEY=your_key_here
+   OPENAI_API_KEY=your_key_here
    ```
 5. Start the FastAPI server (this also starts the MCP Server internally):
    ```bash
