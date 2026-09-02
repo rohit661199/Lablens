@@ -68,7 +68,7 @@ Clinova utilizes an advanced architecture where the backend acts as an orchestra
 
 ```mermaid
 graph TD
-    Client[React Frontend] -->|POST /analyze_labs (CSV/JSON)| API[FastAPI Backend]
+    Client[React Frontend] -->|"POST /analyze_labs (CSV/JSON)"| API[FastAPI Backend]
     
     subgraph Clinova Intelligence Engine
         API -->|JSON-RPC| MCPServer[MCP Server]
