@@ -54,7 +54,8 @@ export default function App() {
   const handleAnalyze = async (data) => {
     setIsLoading(true); setError(null); setResults([]); setSelectedIdx(null);
     try {
-      const r = await fetch('http://localhost:8001/analyze_labs', {
+      const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:8001';
+      const r = await fetch(`${apiUrl}/analyze_labs`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ results: data }),
