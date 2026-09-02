@@ -15,6 +15,13 @@
 
 <hr/>
 
+## 🌐 Live Demo
+
+- **Frontend (Vercel)**: [https://lablens-ashen.vercel.app](https://lablens-ashen.vercel.app)
+- **Backend API (Render)**: [https://lablens-backend.onrender.com](https://lablens-backend.onrender.com)
+
+---
+
 ## ✨ Key Features
 
 - 🔬 **Clinical Analysis Workbench**: A premium, responsive interface inspired by modern pharmaceutical laboratories, featuring dark-mode aesthetics and fluid CSS animations.
@@ -128,8 +135,8 @@ pip install fastapi uvicorn mcp python-dotenv pydantic openai
 # Create environment file and add your API key
 echo "OPENAI_API_KEY=your_key_here" > .env
 
-# Start the server (runs on port 8001 by default)
-uvicorn main:app --reload --port 8001
+# Start the server (runs on port 8000 by default)
+uvicorn main:app --reload --port 8000
 ```
 
 ### 2. Frontend Setup
