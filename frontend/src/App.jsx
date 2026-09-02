@@ -15,7 +15,7 @@ const WORKFLOW = [
 ];
 
 export default function App() {
-  const [theme, setTheme]     = useState('dark');
+  const [theme, setTheme]     = useState('light');
   const [results, setResults] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError]     = useState(null);
@@ -38,6 +38,24 @@ export default function App() {
     }
     return () => clearInterval(t);
   }, [isLoading, results.length]);
+
+  // Browser back button support
+  useEffect(() => {
+    const handlePopState = () => {
+      setResults([]);
+      setSelectedIdx(null);
+    };
+    window.addEventListener('popstate', handlePopState);
+    return () => window.removeEventListener('popstate', handlePopState);
+  }, []);
+
+  const goHome = () => {
+    if (results.length > 0) {
+      setResults([]);
+      setSelectedIdx(null);
+      window.history.pushState(null, '');
+    }
+  };
 
   // Keyboard nav
   useEffect(() => {
@@ -63,6 +81,7 @@ export default function App() {
       if (!r.ok) throw new Error(r.statusText);
       const d = await r.json();
       setResults(d.analyzed_results);
+      window.history.pushState({ results: true }, '');
     } catch (e) {
       setError('Failed to reach the analysis server. Please ensure the backend is running.');
     } finally {
@@ -198,7 +217,7 @@ export default function App() {
 
       {/* ══ HEADER ══ */}
       <header className="app-header no-print">
-        <div className="hdr-brand">
+        <div className="hdr-brand" onClick={goHome} style={{ cursor: 'pointer', userSelect: 'none' }}>
           <div className="hdr-logomark">
             <Activity size={20} />
           </div>
