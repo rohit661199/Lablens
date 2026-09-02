@@ -17,20 +17,58 @@
 
 ## ✨ Key Features
 
-- 🔬 **Clinical Analysis Workbench**: A premium, responsive interface inspired by modern pharmaceutical laboratories.
+- 🔬 **Clinical Analysis Workbench**: A premium, responsive interface inspired by modern pharmaceutical laboratories, featuring dark-mode aesthetics and fluid CSS animations.
 - 🚥 **Severity Classification Engine**: Automatically evaluates results against reference ranges and flags them as **Normal**, **Warning**, or **Critical**.
 - 🧠 **Explainable AI Insights**: Powered by OpenAI's `gpt-4o-mini`, providing plain-English clinical interpretation and recommended next steps for abnormal results.
-- ⚗️ **Toxicology & Drug Screening**: Dedicated presentation for drug screens (e.g. THC, Cocaine, Opiates) detailing Presumptive Positive/Negative status and recommending confirmation testing when required.
-- 📄 **Batch Processing**: Upload full lab reports via CSV, or enter singular test data manually.
-- 🔌 **Model Context Protocol (MCP)**: The backend utilizes an internal MCP server to expose reference databases and LLM capabilities in a standardized way.
+- ⚗️ **Toxicology & Drug Screening**: Dedicated presentation for drug screens (e.g., THC, Cocaine, Opiates) detailing Presumptive Positive/Negative status and recommending confirmation testing when required.
+- 📄 **Batch Processing & Manual Entry**: Upload full lab reports via CSV with automatic parsing, or enter singular test data manually.
+- 📊 **Dynamic Data Visualization**: Interactive clinical reference gauges and severity-coded data grids.
 
-## 📐 Architecture
+---
 
-Clinova utilizes a decoupled architecture where a React/Vite frontend talks to a FastAPI backend. The backend acts as an orchestrator, leveraging an integrated MCP server for specialized diagnostic tools.
+## 📂 Repository Structure
+
+The project is organized into a completely decoupled Frontend and Backend, connected via a REST API.
+
+```text
+Clinova/
+├── backend/                  # Python FastAPI Backend & AI Orchestration
+│   ├── main.py               # FastAPI application entry point & API routes
+│   ├── mcp_server.py         # Internal Model Context Protocol (MCP) Server
+│   ├── models.py             # Pydantic schemas (LabResult, AnalysisResponse)
+│   ├── test_openai.py        # Sandbox for testing LLM connectivity
+│   └── .env                  # Environment variables (OPENAI_API_KEY)
+│
+├── frontend/                 # React + Vite Frontend Workspace
+│   ├── index.html            # HTML entry point
+│   ├── package.json          # Node dependencies
+│   ├── src/                  
+│   │   ├── main.jsx          # React DOM mounting
+│   │   ├── index.css         # Global design tokens (Colors, Fonts, Animations)
+│   │   ├── App.jsx           # App shell, state machine & routing orchestration
+│   │   ├── App.css           # Shell & layout styles
+│   │   └── components/       # UI Component Library
+│   │       ├── PharmaHero.jsx      # Animated landing page / input gateway
+│   │       ├── LabInput.jsx        # Drag-and-drop CSV & manual entry forms
+│   │       ├── ResultsDisplay.jsx  # Diagnostic rendering (Gauges, Tox-grid, AI Insights)
+│   │       ├── SeverityBadge.jsx   # Dynamic severity status indicators
+│   │       └── ...css              # Component-scoped styling
+│
+└── test_data/                # Sample CSV datasets for testing batch processing
+    ├── dataset1.csv          # Routine blood panels (CBC, CMP)
+    ├── dataset2.csv          # Endocrinology & Lipid panels
+    └── dataset3.csv          # Toxicology & Drug Screenings
+```
+
+---
+
+## 📐 Architecture & Data Flow
+
+Clinova utilizes an advanced architecture where the backend acts as an orchestrator, leveraging an integrated **Model Context Protocol (MCP)** server to equip the AI with specialized diagnostic tools.
 
 ```mermaid
 graph TD
-    Client[React Frontend] -->|POST /analyze_labs| API[FastAPI Backend]
+    Client[React Frontend] -->|POST /analyze_labs (CSV/JSON)| API[FastAPI Backend]
     
     subgraph Clinova Intelligence Engine
         API -->|JSON-RPC| MCPServer[MCP Server]
@@ -43,19 +81,27 @@ graph TD
     API -->|Diagnostic Report JSON| Client
 ```
 
+### 🧠 How the AI Engine Works
+1. **Data Ingestion**: Lab results are passed to the FastAPI backend.
+2. **Context Assembly**: The backend calls the internal MCP Server, requesting it to analyze the lab values against standard reference ranges using the `check_severity` tool.
+3. **AI Inference**: For abnormal or complex results, the MCP Server invokes the `explain_results` tool, sending the clinical context to OpenAI (`gpt-4o-mini`).
+4. **Structured Output**: The AI returns a structured explanation and recommended next clinical steps, which is compiled and sent back to the frontend.
+
+---
+
 ## 🛠️ Technology Stack
 
 ### Frontend
 * **React + Vite**: For a lightning-fast development experience and optimized builds.
-* **Vanilla CSS**: Fully custom, token-based design system featuring fluid animations, dark mode capabilities, and a responsive pharmaceutical aesthetic (No Tailwind/Bootstrap overhead).
+* **Vanilla CSS (No Tailwind)**: A fully custom, token-based design system tailored for a unique "pharmaceutical workbench" aesthetic. Utilizes CSS variables, flexbox/grid, and complex keyframe animations.
 * **PapaParse**: High-performance client-side CSV parsing.
 * **Lucide React**: Clean, modern iconography.
 
 ### Backend
 * **Python FastAPI**: Asynchronous web framework for high-throughput API routing.
-* **Model Context Protocol (MCP)**: Standardized context pipeline for the AI agent.
+* **Model Context Protocol (MCP)**: Standardized context pipeline for integrating external tools with LLMs.
 * **OpenAI API**: For generating rich clinical insights and reasoning.
-* **Pydantic**: Strict schema validation for inputs and outputs.
+* **Pydantic**: Strict schema validation for robust API contracts.
 
 ---
 
@@ -104,21 +150,13 @@ npm run dev
 1. Open `http://localhost:5173` in your browser.
 2. The platform will boot into the **Pharmaceutical Intelligence Shell**.
 3. Choose to either:
-   * **Upload a CSV report** (sample datasets provided in `test_data/`)
-   * **Enter results manually** (e.g., Test: Hemoglobin, Result: 9.2, Unit: g/dL, Ref: 12-16)
+   * **Upload a CSV report** (use the provided `test_data/` files).
+   * **Enter results manually** (e.g., Test: Hemoglobin, Result: 9.2, Unit: g/dL, Ref: 12-16).
 4. Watch the Analysis Pipeline classify the data and fetch AI interpretations.
-5. Review the resulting **Clinical Dashboard**, complete with reference gauges and toxicology chain-of-analysis.
+5. Review the resulting **Clinical Dashboard**, interact with the reference gauges, and review the AI-generated recommended clinical actions.
 
 ---
 
-## 🧪 Included Test Data
-
-For testing the batch upload functionality, use the provided CSV datasets in the `test_data/` directory:
-- `dataset1.csv` - Routine blood panel (CBC, CMP)
-- `dataset2.csv` - Endocrinology & Lipid panel
-- `dataset3.csv` - Toxicology & Drug Screenings
-
----
 <div align="center">
   <p>Built with precision for the modern laboratory workspace.</p>
 </div>
