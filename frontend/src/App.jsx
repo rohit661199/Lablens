@@ -54,7 +54,7 @@ export default function App() {
   const handleAnalyze = async (data) => {
     setIsLoading(true); setError(null); setResults([]); setSelectedIdx(null);
     try {
-      const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:8001';
+      const apiUrl = import.meta.env.VITE_API_URL || (import.meta.env.PROD ? 'https://lablens-backend.onrender.com' : 'http://localhost:8000');
       const r = await fetch(`${apiUrl}/analyze_labs`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -64,7 +64,7 @@ export default function App() {
       const d = await r.json();
       setResults(d.analyzed_results);
     } catch (e) {
-      setError('Failed to reach the analysis server. Please ensure the backend is running on port 8001.');
+      setError('Failed to reach the analysis server. Please ensure the backend is running.');
     } finally {
       setIsLoading(false);
     }
