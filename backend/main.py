@@ -15,6 +15,10 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+@app.get("/")
+def read_root():
+    return {"status": "online", "message": "Clinova API is running."}
+
 @app.post("/analyze_labs", response_model=LabAnalysisResponse)
 async def analyze_labs_endpoint(request: LabAnalysisRequest):
     if not request.results:
